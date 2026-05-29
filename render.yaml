@@ -2,6 +2,7 @@ services:
   - type: web
     name: hr-resume-backend
     env: python
+    rootDir: backend
     buildCommand: "./build.sh"
     startCommand: "gunicorn config.wsgi:application"
     envVars:
@@ -26,6 +27,7 @@ services:
   - type: worker
     name: hr-resume-celery
     env: python
+    rootDir: backend
     buildCommand: "pip install -r requirements.txt"
     startCommand: "celery -A config worker -l info"
     envVars:
