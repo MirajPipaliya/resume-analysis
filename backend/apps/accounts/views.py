@@ -90,8 +90,8 @@ class RegisterStartView(views.APIView):
         if User.objects.filter(username=username).exists():
             return Response({'success': False, 'message': 'Username already taken'}, status=400)
         
-        # Generate 6-digit OTP
-        otp_code = str(random.randint(100000, 999999))
+        # Hardcode 6-digit OTP for demo/free-tier deployment to avoid Gmail SMTP blocks
+        otp_code = "123456"
         expires_at = datetime.datetime.utcnow() + datetime.timedelta(minutes=10)
 
         # Store in Mongo
@@ -109,19 +109,7 @@ class RegisterStartView(views.APIView):
             upsert=True
         )
 
-        # Send Email
-        try:
-            send_mail(
-                subject='Byte Solutions - Verify your account',
-                message=f'Hello {full_name},\n\nYour verification code is: {otp_code}\n\nThis code expires in 10 minutes.',
-                from_email=settings.DEFAULT_FROM_EMAIL,
-                recipient_list=[email],
-                fail_silently=False,
-            )
-        except Exception as e:
-            return Response({'success': False, 'message': f'Failed to send email: {str(e)}'}, status=500)
-
-        return Response({'success': True, 'message': 'OTP sent to email', 'data': {'email': email}})
+        return Response({'success': True, 'message': 'Demo Mode: Use OTP 123456', 'data': {'email': email}})
 
 class VerifyOTPView(views.APIView):
     permission_classes = [AllowAny]
