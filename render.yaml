@@ -24,26 +24,3 @@ services:
           name: hr-resume-redis
           property: connectionString
 
-  - type: worker
-    name: hr-resume-celery
-    env: python
-    rootDir: backend
-    buildCommand: "pip install -r requirements.txt"
-    startCommand: "celery -A config worker -l info"
-    envVars:
-      - key: PYTHON_VERSION
-        value: 3.11.0
-      - key: DEBUG
-        value: "False"
-      - key: MONGO_URI
-        sync: false # Set this in Render dashboard
-      - key: REDIS_URL
-        fromService:
-          type: redis
-          name: hr-resume-redis
-          property: connectionString
-
-  - type: redis
-    name: hr-resume-redis
-    ipAllowList: [] # only allow internal connections
-    plan: free
