@@ -1,10 +1,17 @@
+import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import api from '../services/api';
+import { FileText, Search, Plus, ExternalLink, Clock } from 'lucide-react';
 import Badge from '../components/ui/Badge';
 import Skeleton from '../components/ui/Skeleton';
-import { Search, FileText, Plus, ArrowUpRight, Clock } from 'lucide-react';
-import { useState } from 'react';
+
+function ScoreBadge({ score }) {
+  if (score >= 70) return <Badge variant="green">{score}%</Badge>;
+  if (score >= 50) return <Badge variant="amber">{score}%</Badge>;
+  return <Badge variant="red">{score}%</Badge>;
+}
 
 export default function Candidates() {
   const [search, setSearch] = useState('');
@@ -17,40 +24,44 @@ export default function Candidates() {
     },
   });
 
-  const filtered = data?.filter(c =>
-    !search ||
+  const rows = data?.filter(c =>
+    !search.trim() ||
     c.name?.toLowerCase().includes(search.toLowerCase()) ||
     c.job_role?.toLowerCase().includes(search.toLowerCase())
-  );
+  ) ?? [];
 
   return (
     <div className="max-w-5xl mx-auto space-y-6">
 
       {/* Header */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <div className="page-header">
-          <h1>Analysis History</h1>
-          <p>Browse and review all previously analyzed resumes</p>
+      <div className="flex items-center justify-between gap-4 flex-wrap">
+        <div>
+          <h1 className="mb-1">Analysis History</h1>
+          <p className="text-gray-500 text-sm">All previously analyzed resumes and scores</p>
         </div>
-        <Link to="/upload" className="btn-primary flex-shrink-0">
-          <Plus className="w-4 h-4" />
+        <Link to="/upload" className="btn btn-primary">
+          <Plus size={15} strokeWidth={2.5} />
           Analyze Resume
         </Link>
       </div>
 
-      {/* Table card */}
-      <div className="glass-panel overflow-hidden">
-
+      {/* Card */}
+      <motion.div
+        className="card overflow-hidden"
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.25, ease: 'easeOut' }}
+      >
         {/* Search bar */}
-        <div className="px-5 py-4 border-b border-slate-100 bg-slate-50/50">
-          <div className="relative max-w-sm">
-            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+        <div className="px-4 py-3.5 border-b border-gray-100" style={{ background: '#fafafa' }}>
+          <div className="relative max-w-xs">
+            <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
             <input
-              type="text"
               value={search}
               onChange={e => setSearch(e.target.value)}
-              placeholder="Search by name or role..."
-              className="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm text-slate-700 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-400/30 focus:border-blue-400 transition-all"
+              placeholder="Search by name or role…"
+              className="input pl-9 py-2 text-sm"
+              style={{ fontSize: '0.875rem', padding: '0.5rem 0.75rem 0.5rem 2.25rem' }}
             />
           </div>
         </div>
@@ -60,88 +71,83 @@ export default function Candidates() {
           <table className="data-table">
             <thead>
               <tr>
-                <th className="pl-6 pr-3 rounded-tl-xl">Candidate</th>
+                <th style={{ paddingLeft: '1.5rem' }}>#</th>
+                <th>Candidate</th>
                 <th>Target Role</th>
                 <th>Score</th>
-                <th>Date</th>
-                <th className="text-right pr-6 rounded-tr-xl">Action</th>
+                <th>Date Analyzed</th>
+                <th style={{ textAlign: 'right', paddingRight: '1.5rem' }}>Action</th>
               </tr>
             </thead>
             <tbody>
               {isLoading ? (
-                [1, 2, 3, 4, 5].map(i => (
+                [1,2,3,4,5].map(i => (
                   <tr key={i}>
-                    <td colSpan="5" className="px-6 py-3">
-                      <Skeleton className="h-10 w-full" />
+                    <td colSpan={6} style={{ padding: '0.75rem 1.5rem' }}>
+                      <Skeleton className="h-9 w-full rounded-lg" />
                     </td>
                   </tr>
                 ))
-              ) : !filtered?.length ? (
+              ) : rows.length === 0 ? (
                 <tr>
-                  <td colSpan="5" className="py-16 text-center">
-                    <div className="flex flex-col items-center gap-3">
-                      <div className="w-14 h-14 rounded-2xl bg-slate-100 flex items-center justify-center">
-                        <FileText className="w-7 h-7 text-slate-400" />
+                  <td colSpan={6}>
+                    <div className="empty-state">
+                      <div className="empty-icon"><FileText size={22} /></div>
+                      <div>
+                        <p className="text-sm font-semibold text-gray-700 mb-1">
+                          {search ? 'No results found' : 'No resumes yet'}
+                        </p>
+                        <p className="text-sm text-gray-400">
+                          {search ? 'Try a different search term.' : 'Analyze your first resume to see it here.'}
+                        </p>
                       </div>
-                      <p className="text-sm font-semibold text-slate-600">
-                        {search ? 'No results match your search' : 'No resumes analyzed yet'}
-                      </p>
                       {!search && (
-                        <Link to="/upload" className="btn-primary text-sm mt-1">
-                          <Plus className="w-3.5 h-3.5" /> Upload your first resume
+                        <Link to="/upload" className="btn btn-primary btn-sm mt-1">
+                          <Plus size={13} /> Get started
                         </Link>
                       )}
                     </div>
                   </td>
                 </tr>
               ) : (
-                filtered.map(c => (
+                rows.map((c, idx) => (
                   <tr key={c.id}>
-                    {/* Candidate */}
-                    <td className="pl-6 pr-3">
-                      <div className="flex items-center gap-3 min-w-0">
-                        <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-blue-50 to-indigo-100 border border-blue-100 flex items-center justify-center flex-shrink-0">
-                          <FileText className="w-4 h-4 text-blue-600" />
+                    <td style={{ paddingLeft: '1.5rem', color: '#9ca3af', fontWeight: 600, fontSize: '0.75rem', width: 40 }}>
+                      {idx + 1}
+                    </td>
+                    <td>
+                      <div className="flex items-center gap-3">
+                        <div
+                          className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0"
+                          style={{ background: '#eff6ff', border: '1px solid #dbeafe' }}
+                        >
+                          <FileText size={14} className="text-blue-600" />
                         </div>
-                        <span className="font-semibold text-slate-800 truncate max-w-[180px]">
+                        <span className="font-semibold text-gray-900 truncate max-w-[160px]">
                           {c.name || '—'}
                         </span>
                       </div>
                     </td>
-
-                    {/* Role */}
                     <td>
-                      <span className="inline-block max-w-[160px] truncate text-slate-600 text-sm">
+                      <span className="truncate block max-w-[180px] text-gray-600">
                         {c.job_role || '—'}
                       </span>
                     </td>
-
-                    {/* Score */}
+                    <td><ScoreBadge score={c.score} /></td>
                     <td>
-                      <Badge variant={c.score >= 70 ? 'green' : c.score >= 50 ? 'amber' : 'red'}>
-                        {c.score}%
-                      </Badge>
-                    </td>
-
-                    {/* Date */}
-                    <td>
-                      <div className="flex items-center gap-1.5 text-slate-500 text-sm">
-                        <Clock className="w-3.5 h-3.5 flex-shrink-0" />
-                        <span className="whitespace-nowrap">
-                          {new Date(c.added_at).toLocaleDateString('en-US', {
-                            month: 'short', day: 'numeric', year: 'numeric',
-                          })}
-                        </span>
+                      <div className="flex items-center gap-1.5 text-gray-500 text-xs font-medium">
+                        <Clock size={13} className="flex-shrink-0" />
+                        {new Date(c.added_at).toLocaleDateString('en-US', {
+                          month: 'short', day: 'numeric', year: 'numeric',
+                        })}
                       </div>
                     </td>
-
-                    {/* Action */}
-                    <td className="text-right pr-6">
+                    <td style={{ textAlign: 'right', paddingRight: '1.5rem' }}>
                       <Link
                         to={`/analysis/${c.analysis_id}`}
-                        className="inline-flex items-center gap-1.5 text-sm font-semibold text-blue-600 hover:text-blue-700 bg-blue-50 hover:bg-blue-100 px-3.5 py-1.5 rounded-xl transition-all"
+                        className="inline-flex items-center gap-1.5 text-xs font-semibold text-blue-600 hover:text-blue-700 transition-colors"
                       >
-                        View Report <ArrowUpRight className="w-3.5 h-3.5" />
+                        View Report <ExternalLink size={12} />
                       </Link>
                     </td>
                   </tr>
@@ -151,15 +157,16 @@ export default function Candidates() {
           </table>
         </div>
 
-        {/* Footer count */}
-        {filtered?.length > 0 && (
-          <div className="px-6 py-3 border-t border-slate-100 bg-slate-50/50">
-            <p className="text-xs font-medium text-slate-400">
-              Showing <span className="text-slate-600 font-semibold">{filtered.length}</span> {filtered.length === 1 ? 'result' : 'results'}
-            </p>
+        {/* Footer */}
+        {rows.length > 0 && (
+          <div
+            className="px-6 py-3 text-xs text-gray-400 font-medium"
+            style={{ borderTop: '1px solid #f3f4f6', background: '#fafafa' }}
+          >
+            {rows.length} {rows.length === 1 ? 'record' : 'records'}
           </div>
         )}
-      </div>
+      </motion.div>
     </div>
   );
 }

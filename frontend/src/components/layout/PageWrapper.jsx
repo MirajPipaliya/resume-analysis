@@ -1,94 +1,99 @@
 import { useState } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
-import Sidebar from './Sidebar';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Menu, BellDot, Calendar } from 'lucide-react';
+import { Menu, Bell } from 'lucide-react';
+import Sidebar from './Sidebar';
 
 export default function PageWrapper() {
   const location = useLocation();
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-
-  const today = new Date().toLocaleDateString('en-US', {
-    weekday: 'long',
-    month: 'long',
-    day: 'numeric',
-  });
+  const [mobileOpen, setMobileOpen] = useState(false);
 
   return (
-    <div className="min-h-screen flex" style={{ background: 'linear-gradient(135deg, #f0f4ff 0%, #f8f6ff 100%)' }}>
+    <div className="flex h-screen overflow-hidden" style={{ background: '#f4f6fb' }}>
+
       {/* Mobile overlay */}
       <AnimatePresence>
-        {isMobileMenuOpen && (
+        {mobileOpen && (
           <motion.div
+            key="overlay"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-slate-900/60 z-40 md:hidden backdrop-blur-sm"
-            onClick={() => setIsMobileMenuOpen(false)}
+            transition={{ duration: 0.2 }}
+            className="fixed inset-0 z-40 md:hidden"
+            style={{ background: 'rgba(0,0,0,0.5)' }}
+            onClick={() => setMobileOpen(false)}
           />
         )}
       </AnimatePresence>
 
-      {/* Sidebar */}
-      <div className={`fixed md:sticky top-0 left-0 h-screen z-50 transform transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] ${
-        isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'
-      } md:translate-x-0`}>
-        <Sidebar onClose={() => setIsMobileMenuOpen(false)} />
+      {/* Sidebar — desktop sticky, mobile fixed */}
+      <div
+        className={`
+          fixed md:sticky top-0 left-0 h-screen z-50
+          transform transition-transform duration-300
+          ${mobileOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
+        `}
+      >
+        <Sidebar onClose={() => setMobileOpen(false)} />
       </div>
 
-      {/* Main content */}
-      <main className="flex-1 overflow-y-auto h-screen w-full min-w-0">
+      {/* Main area */}
+      <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
         {/* Top bar */}
-        <div
-          className="sticky top-0 z-30 px-5 md:px-8 py-3.5 flex items-center justify-between"
+        <header
+          className="flex-shrink-0 flex items-center justify-between px-6 py-3.5"
           style={{
-            background: 'rgba(240,244,255,0.88)',
-            backdropFilter: 'blur(16px)',
-            WebkitBackdropFilter: 'blur(16px)',
-            borderBottom: '1px solid rgba(226,232,240,0.55)',
+            background: 'rgba(244,246,251,0.9)',
+            backdropFilter: 'blur(12px)',
+            borderBottom: '1px solid #e5e7eb',
+            position: 'sticky',
+            top: 0,
+            zIndex: 30,
           }}
         >
-          {/* Left side */}
+          {/* Left */}
           <div className="flex items-center gap-3">
             <button
-              className="md:hidden w-9 h-9 flex items-center justify-center text-slate-600 hover:bg-slate-200/80 rounded-xl transition-all"
-              onClick={() => setIsMobileMenuOpen(true)}
+              className="md:hidden p-2 rounded-lg text-gray-500 hover:bg-gray-200 transition-colors"
+              onClick={() => setMobileOpen(true)}
             >
-              <Menu className="w-5 h-5" />
+              <Menu size={18} />
             </button>
-            <div className="hidden sm:flex items-center gap-2 text-slate-400">
-              <Calendar className="w-3.5 h-3.5" />
-              <span className="text-xs font-medium tracking-wide">{today}</span>
+            <div className="hidden sm:flex items-center gap-2 text-xs font-medium text-gray-400">
+              {new Date().toLocaleDateString('en-US', {
+                weekday: 'long', month: 'long', day: 'numeric',
+              })}
             </div>
           </div>
 
-          {/* Right side */}
-          <div className="flex items-center gap-4">
-            <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-50 border border-emerald-100">
-              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-              <span className="text-xs font-semibold text-emerald-700">All systems live</span>
+          {/* Right */}
+          <div className="flex items-center gap-3">
+            <div className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-50 border border-emerald-200">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+              <span className="text-xs font-semibold text-emerald-700">Live</span>
             </div>
-            <button className="relative w-9 h-9 flex items-center justify-center text-slate-500 hover:text-slate-700 hover:bg-white/80 rounded-xl transition-all border border-transparent hover:border-slate-200">
-              <BellDot className="w-4.5 h-4.5 w-[18px] h-[18px]" />
+            <button className="p-2 rounded-lg text-gray-400 hover:bg-gray-200 hover:text-gray-600 transition-colors">
+              <Bell size={17} />
             </button>
           </div>
-        </div>
+        </header>
 
         {/* Page content */}
-        <div className="p-5 md:p-8 pb-12">
+        <main className="flex-1 overflow-y-auto px-6 py-7 md:px-8">
           <AnimatePresence mode="wait">
             <motion.div
               key={location.pathname}
-              initial={{ opacity: 0, y: 10 }}
+              initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -6 }}
-              transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
+              exit={{ opacity: 0, y: -4 }}
+              transition={{ duration: 0.18, ease: 'easeOut' }}
             >
               <Outlet />
             </motion.div>
           </AnimatePresence>
-        </div>
-      </main>
+        </main>
+      </div>
     </div>
   );
 }

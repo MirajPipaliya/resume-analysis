@@ -1,128 +1,112 @@
 import { useState } from 'react';
-import Button from '../components/ui/Button';
 import { motion } from 'framer-motion';
-import { Save, CheckCircle2, Sliders, Palette, BrainCircuit } from 'lucide-react';
+import { Save, CheckCircle2, Cpu, SlidersHorizontal } from 'lucide-react';
+import Button from '../components/ui/Button';
 
-function Toggle({ enabled, onChange, id }) {
+function Toggle({ enabled, onChange }) {
   return (
     <button
-      id={id}
+      onClick={onChange}
       role="switch"
       aria-checked={enabled}
-      onClick={onChange}
-      className={`w-12 h-6 rounded-full relative transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-blue-400/40 focus:ring-offset-1 ${
-        enabled ? 'bg-gradient-to-r from-blue-500 to-indigo-500 shadow-md shadow-blue-500/30' : 'bg-slate-200'
+      className={`relative w-11 h-6 rounded-full transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 flex-shrink-0 ${
+        enabled ? 'bg-blue-600' : 'bg-gray-200'
       }`}
     >
-      <motion.div
-        initial={false}
-        animate={{ x: enabled ? 24 : 2 }}
-        transition={{ type: 'spring', stiffness: 500, damping: 30 }}
-        className="absolute top-1 w-4 h-4 bg-white rounded-full shadow-sm"
+      <motion.span
+        className="absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow-sm"
+        animate={{ x: enabled ? 20 : 0 }}
+        transition={{ type: 'spring', stiffness: 500, damping: 35 }}
       />
     </button>
   );
 }
 
-function SettingRow({ label, description, enabled, onChange, id }) {
+function SettingRow({ label, description, enabled, onChange }) {
   return (
-    <div className="flex items-center justify-between gap-6 p-4 rounded-xl bg-white/70 border border-slate-100 hover:border-blue-100 hover:bg-white/90 transition-all group">
+    <div className="flex items-start justify-between gap-6 py-4 border-b border-gray-100 last:border-0">
       <div className="flex-1 min-w-0">
-        <p className="text-sm font-semibold text-slate-800 leading-tight">{label}</p>
-        <p className="text-sm text-slate-500 mt-1 leading-relaxed">{description}</p>
+        <p className="text-sm font-semibold text-gray-800">{label}</p>
+        <p className="text-sm text-gray-500 mt-0.5 leading-relaxed">{description}</p>
       </div>
-      <div className="flex-shrink-0">
-        <Toggle id={id} enabled={enabled} onChange={onChange} />
+      <div className="pt-0.5">
+        <Toggle enabled={enabled} onChange={onChange} />
       </div>
     </div>
   );
 }
 
-function SectionHeader({ icon: Icon, label, color }) {
+function Section({ icon: Icon, title, children, iconColor = 'text-blue-600', iconBg = 'bg-blue-50' }) {
   return (
-    <div className="flex items-center gap-2.5 mb-4 pb-3 border-b border-slate-100">
-      <div className={`p-2 rounded-xl ${color}`}>
-        <Icon className="w-4 h-4" />
+    <div className="card p-6">
+      <div className="flex items-center gap-3 mb-5 pb-4 border-b border-gray-100">
+        <div className={`w-8 h-8 rounded-lg ${iconBg} flex items-center justify-center flex-shrink-0`}>
+          <Icon size={16} className={iconColor} />
+        </div>
+        <h3>{title}</h3>
       </div>
-      <h3 className="text-base font-bold text-slate-800">{label}</h3>
+      {children}
     </div>
   );
 }
 
 export default function Settings() {
-  const [strictScoring,     setStrictScoring]     = useState(false);
-  const [autoGenQuestions,  setAutoGenQuestions]  = useState(true);
-  const [darkTheme,         setDarkTheme]         = useState(false);
-  const [saved,             setSaved]             = useState(false);
+  const [strict,    setStrict]    = useState(false);
+  const [autoQ,     setAutoQ]     = useState(true);
+  const [darkMode,  setDarkMode]  = useState(false);
+  const [saved,     setSaved]     = useState(false);
 
-  const handleSave = () => {
-    setSaved(true);
-    setTimeout(() => setSaved(false), 3000);
-  };
+  const save = () => { setSaved(true); setTimeout(() => setSaved(false), 3000); };
 
   return (
-    <div className="max-w-2xl mx-auto space-y-6">
-
-      {/* Header */}
-      <div className="page-header">
-        <h1>Settings</h1>
-        <p>Manage preferences, AI behavior, and display options</p>
+    <div className="max-w-2xl mx-auto space-y-5">
+      <div className="mb-1">
+        <h1 className="mb-1">Settings</h1>
+        <p className="text-sm text-gray-500">Manage AI behavior and display preferences</p>
       </div>
 
-      {/* AI Preferences */}
-      <div className="glass-panel p-6">
-        <SectionHeader icon={BrainCircuit} label="AI Preferences" color="bg-blue-100 text-blue-600" />
-        <div className="space-y-3">
-          <SettingRow
-            id="strict-scoring"
-            label="Strict Match Scoring"
-            description="Penalize candidates more heavily for missing required skills in the job description."
-            enabled={strictScoring}
-            onChange={() => setStrictScoring(!strictScoring)}
-          />
-          <SettingRow
-            id="auto-gen-questions"
-            label="Auto-Generate Interview Questions"
-            description="Trigger question generation immediately after resume parsing completes, rather than manually."
-            enabled={autoGenQuestions}
-            onChange={() => setAutoGenQuestions(!autoGenQuestions)}
-          />
-        </div>
-      </div>
+      <Section icon={Cpu} title="AI Preferences">
+        <SettingRow
+          label="Strict Match Scoring"
+          description="Penalize candidates more heavily for each missing required skill. Recommended for specialized roles."
+          enabled={strict}
+          onChange={() => setStrict(v => !v)}
+        />
+        <SettingRow
+          label="Auto-Generate Interview Questions"
+          description="Automatically trigger question generation after resume parsing completes, without manual action."
+          enabled={autoQ}
+          onChange={() => setAutoQ(v => !v)}
+        />
+      </Section>
 
-      {/* Analysis Display */}
-      <div className="glass-panel p-6">
-        <SectionHeader icon={Sliders} label="Analysis Display" color="bg-violet-100 text-violet-600" />
-        <div className="space-y-3">
-          <SettingRow
-            id="dark-theme"
-            label="Dark Mode (Coming Soon)"
-            description="Switch the entire dashboard to a dark color palette for reduced eye strain."
-            enabled={darkTheme}
-            onChange={() => setDarkTheme(!darkTheme)}
-          />
-        </div>
-      </div>
+      <Section icon={SlidersHorizontal} title="Appearance" iconColor="text-violet-600" iconBg="bg-violet-50">
+        <SettingRow
+          label="Dark Mode"
+          description="Switch to a dark color palette. Coming in the next release."
+          enabled={darkMode}
+          onChange={() => setDarkMode(v => !v)}
+        />
+      </Section>
 
-      {/* Save */}
-      <div className="glass-panel px-6 py-5 flex items-center justify-between">
+      {/* Save bar */}
+      <div className="card px-5 py-4 flex items-center justify-between">
         <div className="text-sm">
-          {saved ? (
-            <motion.span
-              initial={{ opacity: 0, x: -8 }}
-              animate={{ opacity: 1, x: 0 }}
-              className="flex items-center gap-1.5 text-emerald-600 font-semibold"
-            >
-              <CheckCircle2 className="w-4 h-4" />
-              Preferences saved!
-            </motion.span>
-          ) : (
-            <span className="text-slate-400 text-sm">Changes won't take effect until saved.</span>
-          )}
+          {saved
+            ? (
+              <motion.span
+                initial={{ opacity: 0, x: -6 }}
+                animate={{ opacity: 1, x: 0 }}
+                className="flex items-center gap-1.5 text-green-600 font-semibold"
+              >
+                <CheckCircle2 size={15} /> Saved successfully
+              </motion.span>
+            )
+            : <span className="text-gray-400">Unsaved changes will be lost on reload.</span>
+          }
         </div>
-        <Button onClick={handleSave} size="md">
-          <Save className="w-4 h-4" />
-          Save Settings
+        <Button onClick={save}>
+          <Save size={15} /> Save Settings
         </Button>
       </div>
     </div>
