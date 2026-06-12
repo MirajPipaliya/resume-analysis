@@ -149,13 +149,6 @@ export default function Sidebar({ onClose }) {
             <p className="text-slate-200 text-sm font-semibold truncate">{user?.username || 'Admin'}</p>
             <p className="text-slate-500 text-xs">{user?.role || 'User'}</p>
           </div>
-          <button
-            onClick={handleLogout}
-            title="Log out"
-            className="p-1.5 rounded-lg text-slate-600 hover:text-rose-400 hover:bg-rose-400/10 transition-all duration-200"
-          >
-            <LogOut className="w-4 h-4" />
-          </button>
         </div>
       </div>
     </motion.aside>
